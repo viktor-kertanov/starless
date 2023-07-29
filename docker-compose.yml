@@ -1,0 +1,24 @@
+version: '3'
+
+networks:
+  starless_network:
+    driver: bridge
+
+services:
+  postgres_starless:
+    container_name: postgress_starless  
+    image: postgres:13
+    restart: always
+    networks:
+      - starless_network
+    environment:
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB_NAME}
+    ports:
+      - 5432:5432
+    volumes:
+      - starless_postgres_data:/var/lib/postgresql/data 
+
+volumes:
+  starless_postgres_data:
