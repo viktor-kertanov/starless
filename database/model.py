@@ -41,11 +41,15 @@ class Release(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = 'music_releases'
     release_metadata = Column(String, unique=True, nullable=False)
     release_artist = Column(String, unique=False, nullable=False)
-    release_name = Column(String, unique=False, nullable=False)
+    release_title = Column(String, unique=False, nullable=False)
     release_country = Column(String(128), unique=False, nullable=True)
     release_year = Column(Integer, nullable=True, unique=False)
     appears_in_num_charts = Column(Integer, nullable=True, unique=False)
     release_duration = Column(Interval, nullable=True, unique=False)
+    album_art_url = Column(String(128), unique=False, nullable=True)
+    release_isrc = Column(String(128), unique=True, nullable=True)
+    release_url = Column(String, unique=False, nullable=True)
+    risky_metadata = Column(Boolean, unique=False, nullable=True)
 
     def __repr__(self):
         return f"Release: {self.release_metadata}"
