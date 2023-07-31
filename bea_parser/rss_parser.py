@@ -1,15 +1,11 @@
 from bs4 import BeautifulSoup
-from datetime import datetime
 from random import random, randint
 from database.db_config import db_session
 from database.model import MusicChart, Release, ReleaseChart
 from logs.log_config import logger
-import requests
 from sqlalchemy.exc import IntegrityError
 import asyncio
 import ssl
-import json
-from json import JSONDecodeError
 import aiohttp
 from time import time
 import uuid

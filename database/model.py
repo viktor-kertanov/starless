@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, Interval, func
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Interval, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declared_attr
@@ -42,27 +42,47 @@ class Release(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     release_metadata = Column(String, unique=True, nullable=False)
     release_artist = Column(String, unique=False, nullable=False)
     release_title = Column(String, unique=False, nullable=False)
-    release_country = Column(String(128), unique=False, nullable=True)
     release_year = Column(Integer, nullable=True, unique=False)
-    appears_in_num_charts = Column(Integer, nullable=True, unique=False)
-    release_duration = Column(Interval, nullable=True, unique=False)
+    release_date = Column(DateTime, nullable=True, unique=False)
+    in_num_charts = Column(Integer, nullable=True, unique=False)
+    total_ranking = Column(Integer, nullable=True, unique=False)
     album_art_url = Column(String(128), unique=False, nullable=True)
-    release_isrc = Column(String(128), unique=True, nullable=True)
     release_url = Column(String, unique=False, nullable=True)
-    risky_metadata = Column(Boolean, unique=False, nullable=True)
-
+    num_ratings = Column(Integer, unique=False, nullable=True)
+    top_percentile = Column(Float, unique=False, nullable=True)
+    bayes_avg_rating = Column(Float, unique=False, nullable=True)
+    mean_avg_rating = Column(Float, unique=False, nullable=True)
+    std_rating = Column(Float, unique=False, nullable=True)
+    num_favourites = Column(Integer, unique=False, nullable=True)
+    
     def __repr__(self):
         return f"Release: {self.release_metadata}"
 
 
-class ReleaseChart(UUIDPrimaryKeyMixin, TimestampMixin, Base):
-    __tablename__ = 'release_music_chart'
-    release_id = Column(String, unique=False, nullable=False)
-    chart_id = Column(String, unique=False, nullable=False)
+class ChartRelease(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = 'chart_release'
+    release_id = Column(UUID(as_uuid=True), ForeignKey(Release.id), unique=False, nullable=False)
+    chart_id = Column(UUID(as_uuid=True), ForeignKey(MusicChart.id), unique=False, nullable=False)
     position = Column(Integer, nullable=True, unique=False)
+    release = relationship('Release', backref='chart_releases')
+    chart  = relationship('MusicChart', backref='chart_releases')
+
+
+class Track(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = 'tracks'
+    release_id = Column(UUID(as_uuid=True), ForeignKey(Release.id), unique=False, nullable=False)
+    track_title = Column(String, unique=False, nullable=False)
+    idx_in_release = Column(Integer, unique=False, nullable=False)
+    track_duration = Column(Interval, unique=False, nullable=True)
+    in_favourite = Column(Integer, unique=False, nullable=True)
+    user_avg_rating = Column(Float, unique=False, nullable=True)
+    user_num_votes = Column(Integer, unique=False, nullable=True)
+    total_charts = Column(Integer, unique=False, nullable=True)
+
+    release = relationship('Release', backref='tracks')
 
     def __repr__(self):
-        return f"Release id: {self.release_id} in chart [{self.chart_id}], position # {self.position}"
+        return f"Track # {self.idx_in_release}: {self.track_title}. Duration: {self.track_duration}"
 
 
 if __name__ == '__main__':
