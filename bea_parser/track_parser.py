@@ -20,6 +20,29 @@ track_raw_data = soup.select('div[id="tracks_div"] div.item-row')
 
 ranks_data = soup.select('table.ranks-table tfoot.charthead th.chartnumber')
 ranks_data = [int(el.text) for el in ranks_data]
+num_charts = ranks_data[0]
+total_rank = ranks_data[1]
+
+in_favourites = int(soup.select_one("div[id='div_fav']").text.split('Showing all ')[1].split(' ')[0])
+
+num_ratings = int(soup.select_one('div[id="div_rat"] a.nav2').text.split('Show all ')[1].split(' ')[0])
+
+
+
+rating_section = soup.select_one('div[id="div_rat"]')
+paragraph_with_data = rating_section.find_next_sibling('p')
+tag_to_delete = paragraph_with_data.select_one("span.smallerbody")
+tag_to_delete.decompose()
+stats_literal_data = paragraph_with_data.text
+
+bayes_avg = float(stats_literal_data.split('a Bayesian average rating of ')[1].split('/')[0])
+mean_avg = float(stats_literal_data.split('a mean average of ')[1].split('/')[0])
+std_rating = float(stats_literal_data.split('The standard deviation for this album is ')[1].split('.')[0])
+
+
+
+
+mean_std_data = soup.select('table.ranks-table tfoot.charthead th.chartnumber')
 
 track_data = []
 for track in track_raw_data:
