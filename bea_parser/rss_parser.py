@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from random import random, randint
 from database.db_config import db_session
-from database.model import MusicChart, Release, ReleaseChart
+from database.model import MusicChart, Release, ChartRelease
 from logs.log_config import logger
 from sqlalchemy.exc import IntegrityError
 import asyncio
@@ -76,7 +76,7 @@ def parse_page(html_content, chart_id):
             logger.info(f"IN THE SYSTEM:: Release: {full_metadata}")
             release_id = db_session.query(Release).filter(Release.release_metadata == full_metadata).first().id
 
-        db_session.add(ReleaseChart(release_id=release_id, chart_id=chart_id, position=position))
+        db_session.add(ChartRelease(release_id=release_id, chart_id=chart_id, position=position))
         db_session.commit()
 
 

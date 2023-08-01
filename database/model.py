@@ -74,10 +74,8 @@ class Track(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     track_title = Column(String, unique=False, nullable=False)
     idx_in_release = Column(Integer, unique=False, nullable=False)
     track_duration = Column(Interval, unique=False, nullable=True)
-    in_favourite = Column(Integer, unique=False, nullable=True)
     user_avg_rating = Column(Float, unique=False, nullable=True)
     user_num_votes = Column(Integer, unique=False, nullable=True)
-    total_charts = Column(Integer, unique=False, nullable=True)
 
     release = relationship('Release', backref='tracks')
 
