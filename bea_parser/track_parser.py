@@ -25,7 +25,6 @@ async def scrape_multiple_pages(releases: list[Release]):
         parse_page(html_content, releases[idx])
         await asyncio.sleep(random()+random()*0.1)
 
-
 async def fetch_page(url, rate_limit=5):
     async with asyncio.Semaphore(rate_limit):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_ctx)) as session:
@@ -162,7 +161,7 @@ def parse_page(html_content, input_release: Release):
     
     
 
-@backoff(start_sleep_time=0.2, factor=2, border_sleep_time=50)
+@backoff(start_sleep_time=0.2, factor=2, border_sleep_time=100)
 async def main():
     batch_size = 10
     offset = 0
@@ -171,7 +170,7 @@ async def main():
     while True:
         start_time = time()
 
-        releases = db_session.query(Release).filter(Release.release_year.is_(None)).order_by(Release.created).offset(offset).limit(batch_size).all()
+        releases = db_session.query(Release).filter(Release.release_year.is_(None)).order_by(Release.id).offset(offset).limit(batch_size).all()
 
         if not releases:
             break
@@ -191,6 +190,14 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())    
+    asyncio.run(main()) 
+    # bad_urls = db_session.query(Release).filter(Release.release_url.like('%https://www.besteveralbums.comhttp:%')).all()
+    # for rls in bad_urls:
+    #     old_name = rls.release_url
+    #     new_name = old_name.replace('https://www.besteveralbums.comhttp:', 'https:')
+    #     rls.release_url = new_name
     
+    # db_session.commit()
+
+
     print('Hello world.')
