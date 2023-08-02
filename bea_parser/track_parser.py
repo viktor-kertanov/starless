@@ -1,19 +1,17 @@
 from bs4 import BeautifulSoup
 from random import random, randint
 from database.db_config import db_session
-from database.model import MusicChart, Release, ChartRelease, Track
+from database.model import Release, Track
 from logs.log_config import logger
 from sqlalchemy.exc import IntegrityError
 import asyncio
 import ssl
 import aiohttp
 from time import time
-import uuid
-import csv
 from datetime import datetime
 import re
 from utils.backoff import backoff
-
+from sqlalchemy import and_
 
 custom_ca_bundle_path = 'certificates/certificate.pem'
 ssl_ctx = ssl.create_default_context(cafile=custom_ca_bundle_path)
@@ -131,7 +129,6 @@ def parse_page(html_content, input_release: Release):
         setattr(input_release, attr, value)
 
     db_session.commit()
-    
 
     track_raw_data = soup.select('div[id="tracks_div"] div.item-row')
     track_data = []
@@ -164,13 +161,12 @@ def parse_page(html_content, input_release: Release):
 @backoff(start_sleep_time=0.2, factor=2, border_sleep_time=100)
 async def main():
     batch_size = 10
-    offset = 0
     batch_idx = 1
-
+    offset = 0
+    # query_rebuild =  db_session.query(Release).filter(and_(Release.in_num_charts > 50, Release.num_favourites == 0))
     while True:
         start_time = time()
-
-        releases = db_session.query(Release).filter(Release.release_year.is_(None)).order_by(Release.id).offset(offset).limit(batch_size).all()
+        releases = db_session.query(Release).filter(Release.release_year.is_(None)).limit(batch_size).all()
 
         if not releases:
             break
@@ -183,8 +179,8 @@ async def main():
         elapsed_time = end_time - start_time
         logger.info(f"Batch # {batch_idx}. Time taken: {elapsed_time:.2f} seconds")
 
-        offset += batch_size
         batch_idx += 1
+        offset += batch_size
 
 
 

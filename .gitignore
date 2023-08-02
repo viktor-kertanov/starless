@@ -12,3 +12,8 @@ charts.json
 __pycache__/
 *.py[cod]
 *$py.class
+
+#VS Code
+/.vscode
+
+*/.DS_Store
