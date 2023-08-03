@@ -17,3 +17,7 @@ __pycache__/
 /.vscode
 
 */.DS_Store
+
+# Google API secrets file credentials.json and refresh token
+google_auth/credentials/credentials.json
+google_auth/credentials/token.json
