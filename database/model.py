@@ -83,5 +83,33 @@ class Track(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         return f"Track # {self.idx_in_release}: {self.release.release_artist} - {self.track_title} . Duration: {self.track_duration}"
 
 
+class Playlist(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = 'playlists'
+    track_id = Column(UUID(as_uuid=True), ForeignKey(Track.id), unique=False, nullable=False)
+    playlist_id = Column(UUID(as_uuid=True), unique=False, nullable=False)
+    playlist_name = Column(String, nullable=True, unique=False)
+
+    track = relationship('Track', backref='playlist')
+
+    def __repr__(self):
+        return f"Track id {self.track_id}. Playlist id: {self.id}"
+
+class YoutubeMatch(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = 'youtube_trackmatch'
+    track_id = Column(UUID(as_uuid=True), ForeignKey(Track.id), unique=False, nullable=False)
+    idx_in_search = Column(Integer, nullable=True, unique=False)
+    yt_video_id = Column(String(64), nullable=False, unique=False)
+    yt_metadata = Column(String, nullable=False, unique=True)
+    duration = Column(Interval, nullable=False, unique=False)
+    yt_category = Column(Integer, nullable=True, unique=False)
+    match_rate = Column(Float, nullable=True, unique=False)
+    channel_id = Column(String(64), nullable=True, unique=False)
+
+    track = relationship('Track', backref='youtube_trackmatch')
+
+    def __repr__(self):
+        return f"Track {self.track.track_title} [{self.track_id}. Match: {self.yt_video_id} :: {self.yt_metadata} , {self.duration}]"
+
+
 if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)
