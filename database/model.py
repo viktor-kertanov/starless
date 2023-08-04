@@ -80,7 +80,7 @@ class Track(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     release = relationship('Release', backref='tracks')
 
     def __repr__(self):
-        return f"Track # {self.idx_in_release}: {self.track_title}. Duration: {self.track_duration}"
+        return f"Track # {self.idx_in_release}: {self.release.release_artist} - {self.track_title} . Duration: {self.track_duration}"
 
 
 if __name__ == '__main__':
