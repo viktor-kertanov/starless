@@ -86,6 +86,11 @@ class Track(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 class Playlist(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = 'playlists'
     track_id = Column(UUID(as_uuid=True), ForeignKey(Track.id), unique=False, nullable=False)
+    original_metadata = Column(String, unique=False, nullable=False)
+    artist = Column(String, nullable=False, unique=False)
+    track_title = Column(String, nullable=False, unique=False)
+    release_id = Column(UUID(as_uuid=True), unique=False, nullable=False)
+    from_chart = Column(UUID(as_uuid=True), unique=False, nullable=False)
     playlist_id = Column(UUID(as_uuid=True), unique=False, nullable=False)
     playlist_name = Column(String, nullable=True, unique=False)
 
