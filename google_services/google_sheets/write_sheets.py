@@ -1,6 +1,5 @@
 from googleapiclient.discovery import build
 from google_services.authorization.get_oauth_creds import get_creds
-from config import GOOGLE_API_KEY
 
 def write_to_spreadsheet(chart, spreadsheet_id: str, sheet_name: str, dimension='ROWS'):
     creds = get_creds()
