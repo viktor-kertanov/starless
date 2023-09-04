@@ -104,11 +104,12 @@ class YoutubeMatch(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     track_id = Column(UUID(as_uuid=True), ForeignKey(Track.id), unique=False, nullable=False)
     idx_in_search = Column(Integer, nullable=True, unique=False)
     yt_video_id = Column(String(64), nullable=False, unique=False)
-    yt_metadata = Column(String, nullable=False, unique=True)
+    yt_metadata = Column(String, nullable=False, unique=False)
     duration = Column(Interval, nullable=False, unique=False)
     yt_category = Column(Integer, nullable=True, unique=False)
     match_rate = Column(Float, nullable=True, unique=False)
     channel_id = Column(String(64), nullable=True, unique=False)
+    channel_name = Column(String, nullable=False, unique=False)
 
     track = relationship('Track', backref='youtube_trackmatch')
 

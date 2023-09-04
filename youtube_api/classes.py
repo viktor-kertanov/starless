@@ -1,4 +1,4 @@
-from google_auth.get_oauth_creds import get_creds
+from google_services.authorization.get_oauth_creds import get_creds
 from googleapiclient.discovery import build
 from youtube_api.helpers import ids_to_str
 import arrow
@@ -351,5 +351,6 @@ if __name__ == '__main__':
 
     video_data_instance = VideoApiRequest(videos)
     video_data = video_data_instance.get_video_data()
+
 
     print('Hello world!')

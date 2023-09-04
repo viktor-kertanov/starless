@@ -1,4 +1,4 @@
-from google_auth.get_oauth_creds import get_creds
+from google_services.authorization.get_oauth_creds import get_creds
 from googleapiclient.discovery import build
 from youtube_api.test_data import test_sources, test_video_ids
 import re
@@ -70,6 +70,29 @@ def _get_id_by_custom_url(custom_channel_url):
             is {YOUTUBE_CHANNEL_PREFIX}{channel_id}''')
             return channel_id
 
+def get_id_by_custom_url(custom_channel_url):
+    if "youtube.com/c/" in custom_channel_url:
+        string_prepared = re.sub('.*youtube.com/c/', '', custom_channel_url)
+        string_prepared = string_prepared.split('/')[0]
+    if "@" in custom_channel_url:
+        string_prepared = custom_channel_url.split('@')[-1]
+    creds = get_creds()
+    service = build('youtube', 'v3', credentials=creds)
+    part_parameter = 'id'
+    api_response = service.search().list(
+        part=part_parameter,
+        q=string_prepared,
+        maxResults = 5).execute()
+    for item in api_response['items']:
+        if item['id']['kind'] != 'youtube#channel':
+            continue
+        else:
+            channel_id = item['id']['channelId']
+            print(f'''
+            Our found channel for {CUSTOM_CHANNEL_URL_PREFIX}{string_prepared}
+            is {YOUTUBE_CHANNEL_PREFIX}{channel_id}''')
+            return channel_id
+
 def proper_video_id(input_string):
     input_string = str(input_string)
     patterns = [re.compile(r'v=[^?/=&.]{11}'), re.compile(r'[^ ?/=&.]{11}')]
@@ -93,4 +116,7 @@ if __name__ == '__main__':
     #     a = proper_source_id(el)
     #     print(a)
     a = proper_video_id('qbqJVEbQgXQ')
+    print(a)
+
+    a = get_id_by_custom_url("https://www.youtube.com/@spiritualarchive")
     print(a)
