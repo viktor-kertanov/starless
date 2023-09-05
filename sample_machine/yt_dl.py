@@ -3,11 +3,20 @@ from pytube import YouTube
 import os
 import re
 from config import settings
+from pytube.exceptions import VideoUnavailable
+from logs.log_config import logger
 
 
-def dl_yt_as_mp3(video_url: str, output_path: str, character_limiter: int=60):
+def dl_yt_as_mp3(
+    video_url: str,
+    output_path: str,
+    character_limiter: int=60
+):
     yt = YouTube(video_url)
-    video = yt.streams.filter(only_audio=True).first()
+    try:
+        video = yt.streams.filter(only_audio=True).first()
+    except VideoUnavailable:
+        return logger.info("%s unavailable" % video_url)
     out_file = video.download(output_path=output_path)
     
     base, ext = os.path.splitext(out_file)
@@ -26,7 +35,7 @@ def dl_yt_as_mp3(video_url: str, output_path: str, character_limiter: int=60):
 
 
 if __name__ == '__main__':
-    yt_dl_folder = settings
+    yt_dl_folder = settings.audio_lib
     video_url = "https://www.youtube.com/watch?v=__-EM_IUVuw"
     dl_yt_as_mp3(video_url, yt_dl_folder, character_limiter=50)
 

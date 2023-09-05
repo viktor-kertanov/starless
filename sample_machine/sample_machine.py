@@ -10,6 +10,9 @@ from datetime import datetime
 from google_services.speech_to_text.stt import speech_to_text
 from random import choice
 import uuid
+from config import settings
+from logs.log_config import logger
+from random import random, randint, choice
 
 def get_files_from_folder(folder_path):
     files = [f for f in os.listdir(folder_path) if isfile(join(folder_path, f)) if f != '.DS_Store']
@@ -35,7 +38,8 @@ def msec_to_minutes_by_total(total_msec: int) -> str:
     whole_minutes = total_seconds // 60
     leftover_sec = total_seconds % 60
     
-    return f"{int(whole_minutes)} мин {int(leftover_sec)} сек"
+    return f"{int(whole_minutes)}m{int(leftover_sec)}s"
+
 
 def get_x_seconds_from_audio(
         audio_path: str,
@@ -72,12 +76,60 @@ def get_x_seconds_from_audio(
         slice = next(islice(slices, random_segment_idx, random_segment_idx+1), None)
         
         audio_sample = slice.fade_in(fade_in).fade_out(fade_out)
-        audio_sample.export(f"sample_machine/samples/{uuid.uuid4()}_{msec_to_minutes_by_interval(x_seconds, random_segment_idx)}.mp3")
+        audio_sample.export(f"audio_sampler/output/{filename}_idx{random_segment_idx}_{msec_to_minutes_by_interval(x_seconds, random_segment_idx)}.mp3")
         final_audio += audio_sample
 
-    final_audio.export(f'sample_machine/samples/{get_date_for_filename()}_{filename.split(".")[0]}_{num_samples}_samples.mp3')
+    final_audio.export(f'audio_sampler/output/{get_date_for_filename()}_{filename.split(".")[0]}_{num_samples}_samples.mp3')
 
     return final_audio
+
+def minutes_seconds_from_millisec(ms):
+    seconds, milliseconds = divmod(ms, 1000)
+    minutes, seconds = divmod(seconds, 60)
+
+    return f"{minutes}:{seconds}"
+
+
+def get_samples_from_audiofile(
+        filename: str,
+        num_samples: int=5,
+        sample_sec: [int|list[int]]=[2, 9],
+        fade_in_sec: int=0.3,
+        fade_out_sec: int=0.3,
+        audio_lib: str=settings.audio_lib
+        ):
+    
+    path_to_audio = f"{audio_lib}{filename}"
+    audio = get_audio(path_to_audio)
+    
+    # length of audio in milliseconds
+    duration_ms = len(audio)
+    humanize_duration = minutes_seconds_from_millisec(duration_ms)
+    logger.info(f"File provided: {filename}. Duration: {humanize_duration}")
+    if duration_ms < 30000:
+        return logger.info("The file %s is very short. We are skipping it." % filename)
+
+    # now picking the random points
+    segments = []
+    for idx in range(num_samples):
+        if type(sample_sec) == list:
+            sample_duration_sec = random()*(max(sample_sec) - min(sample_sec)) + min(sample_sec)
+            logger.info("Lenght of the segment %s is %s seconds" % (idx, round(sample_duration_sec, 1)))
+        
+        start_sample_ms = randint(0, int(duration_ms - sample_duration_sec*1000))
+        end_sample_ms = int(start_sample_ms + sample_duration_sec*1000)
+        segments.append((start_sample_ms, end_sample_ms))
+    
+    # exporting samples
+    for start, end in segments:
+        audio_sample = audio[start:end]
+        if end - start < 1500:
+            fade_in_sec = random() * 0.45 + 0.05
+            fade_out_sec = random() * 0.45 + 0.05
+        audio_sample = audio_sample.fade_in(int(fade_in_sec*1000)).fade_out(int(fade_out_sec*1000))
+        audio_sample.export(f"{sample_lib}{filename.replace('.mp3', '')}_s{int(start/1000)}-e{int(end/1000)}.mp3")
+
+    return None
 
 def get_os_file_data(file_path):
     
@@ -251,9 +303,25 @@ def get_short_audio_transcript(audio_path: str):
     return transcript
 
 if __name__ == '__main__':
-    output_path = "sample_machine/samples"
-    audio_path = "sample_machine/audiofiles/illuminated_void_-_virgo_lucifera_(2023)_(new_official_video)_psychedelic_doom_metal.mp3"
     
+    audio_lib = settings.audio_lib
+    sample_lib = settings.sample_lib
+
+    files = get_files_from_folder(audio_lib)
+    for file in files:
+        file_format = get_file_format(file)
+        num_samples = randint(4, 8)
+        sample = get_samples_from_audiofile(
+            file,
+            num_samples=num_samples,
+            sample_sec=[1, 10],
+            fade_in_sec=0.4,
+            fade_out_sec=0.4,
+            audio_lib=audio_lib
+        )
+
+    print('Hello world!')
+
     # min_silence_len_ms = 2000
     # silence_thresh_db = -45
     # seek_step_ms = 5
@@ -274,21 +342,3 @@ if __name__ == '__main__':
 
     # export_by_timemap_to_audiofiles(audio_path, output_path, silent_excerpts, folder_codename="silence", leading_preserve_msec=0)
     # export_by_timemap_to_audiofiles(audio_path, output_path, nonsilent_excerpts, folder_codename="nonsilent", leading_preserve_msec=1000)
-
-
-    input_folder = f"sample_machine/audiofiles/"
-    output_folder = f"audio_sampler/output/{uuid.uuid4}.mp3"
-    files = get_files_from_folder(input_folder)
-
-    random_file = choice(files)
-    file_format = get_file_format(random_file)
-
-    sample = get_x_seconds_from_audio(
-        f"{input_folder}{random_file}",
-        num_samples=3,
-        x_seconds=3000,
-        fade_in=200,
-        fade_out=200
-    )
-
-    print('Hello world!')

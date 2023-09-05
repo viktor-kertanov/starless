@@ -100,7 +100,13 @@ def work_with_playlists(days_no_check: int = 60):
     return None
 
 
-def work_with_channels(days_no_check: int = 30):
+def work_with_channels(
+        channels_to_check: list[str] = None,
+        days_no_check: int = 30
+    ):
+    
+    input_from_google_sheet = True if channels_to_check else False
+
     google_sheet_id = settings.sample_machine_sheet_id
     google_sheet_cnl = "channels"
     google_sheet_videos = "videos"
@@ -109,18 +115,28 @@ def work_with_channels(days_no_check: int = 30):
     videos_exist = read_google_sheet(google_sheet_id, google_sheet_videos)
     existing_video_ids = set(videos_exist["video_id"])
 
-    # read what playlists we need to check
-    input_sheet_data = read_google_sheet(google_sheet_id, google_sheet_cnl)
-    playlist_headers = input_sheet_data.columns.tolist()
-    deduped = input_sheet_data.drop_duplicates(subset='channel', keep='first')
-    deduped['date_processed'] = pd.to_datetime(deduped['date_processed'])
-    threshold_date = datetime.now() - timedelta(days=days_no_check)
-    final_playlists_to_check = deduped[(deduped['date_processed'] < threshold_date)| pd.isna(deduped['date_processed'])]
+    if not channels_to_check:
+        # read what playlists we need to check
+        input_sheet_data = read_google_sheet(google_sheet_id, google_sheet_cnl)
+        playlist_headers = input_sheet_data.columns.tolist()
+        deduped = input_sheet_data.drop_duplicates(subset='channel', keep='first')
+        deduped['date_processed'] = pd.to_datetime(deduped['date_processed'])
+        threshold_date = datetime.now() - timedelta(days=days_no_check)
+        final_playlists_to_check = deduped[(deduped['date_processed'] < threshold_date)| pd.isna(deduped['date_processed'])]
 
-    # extract playlist ids and send request to YT API to get video ids
-    cnl_ids = list(final_playlists_to_check['channel'])
-    assumed_cnl_ids = [get_id_by_custom_url(cnl) for cnl in cnl_ids if get_id_by_custom_url(cnl)]
-    cnl = ChannelApiRequest(assumed_cnl_ids)
+        # extract playlist ids and send request to YT API to get video ids
+        channels_to_check = list(final_playlists_to_check['channel'])
+    
+    channels_to_check = [get_id_by_custom_url(cnl) for cnl in channels_to_check]
+    final_channels_to_check = [el for el in channels_to_check if el]
+
+    if len(final_channels_to_check) != len(channels_to_check):
+        logger.info(
+            "%s is initial list of channels VS. %s the end list of channels" 
+            % (len(channels_to_check), len(final_channels_to_check))
+        )
+
+    cnl = ChannelApiRequest(final_channels_to_check)
     cnl_data = cnl.get_channel_data()
 
     # collect the list of all the video ids from every playlist and dedupe existing videos, duplicates
@@ -147,14 +163,15 @@ def work_with_channels(days_no_check: int = 30):
         prepare_chart_google(video_data, google_sheet_id, google_sheet_videos)
     
     # update the date_processed column and update the google sheet with the new data
-    deduped['date_processed'] = datetime.now().strftime('%d.%m.%Y')
-    updated_playlist_info = deduped.values.tolist()
-    updated_playlist_info.insert(0, playlist_headers)
-    write_to_spreadsheet(updated_playlist_info, google_sheet_id, google_sheet_cnl)
+    if input_from_google_sheet:
+        deduped['date_processed'] = datetime.now().strftime('%d.%m.%Y')
+        updated_playlist_info = deduped.values.tolist()
+        updated_playlist_info.insert(0, playlist_headers)
+        write_to_spreadsheet(updated_playlist_info, google_sheet_id, google_sheet_cnl)
     
     return None
 
 if __name__ == '__main__':
-    work_with_channels()
+    work_with_channels(channels_to_check=["https://www.youtube.com/@analdevices"])
 
     print('Hello world')
