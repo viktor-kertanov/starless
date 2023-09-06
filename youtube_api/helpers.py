@@ -71,6 +71,11 @@ def _get_id_by_custom_url(custom_channel_url):
             return channel_id
 
 def get_id_by_custom_url(custom_channel_url):
+    pattern = r'U[UC][^&=]{22}'
+    channel_id_match = re.search(pattern, custom_channel_url)
+    if channel_id_match:
+        return channel_id_match.group()
+
     if "youtube.com/c/" in custom_channel_url:
         string_prepared = re.sub('.*youtube.com/c/', '', custom_channel_url)
         string_prepared = string_prepared.split('/')[0]

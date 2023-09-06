@@ -127,7 +127,7 @@ def get_samples_from_audiofile(
             fade_in_sec = random() * 0.45 + 0.05
             fade_out_sec = random() * 0.45 + 0.05
         audio_sample = audio_sample.fade_in(int(fade_in_sec*1000)).fade_out(int(fade_out_sec*1000))
-        audio_sample.export(f"{sample_lib}{filename.replace('.mp3', '')}_s{int(start/1000)}-e{int(end/1000)}.mp3")
+        audio_sample.export(f"{sample_lib}{filename.replace('.mp3', '')}_s{int(start/1000)}-e{int(end/1000)}.mp3", format='mp3')
 
     return None
 
