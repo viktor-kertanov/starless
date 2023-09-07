@@ -3,18 +3,21 @@ from logs.log_config import logger
 import librosa
 import os
 import random
-from sample_machine.define_key_classes import Tonal_Fragment
+from sample_machine_service.define_key_classes import Tonal_Fragment
 
 def define_pitch(audio_path):
     y, sr = librosa.load(audio_path)
 
     y_harmonic, y_percussive = librosa.effects.hpss(y)
     tonal_fragment = Tonal_Fragment(y_harmonic, sr)
+    main_key = tonal_fragment.key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
+    alt_key = tonal_fragment.altkey
     
-    return {
-        "main_key": tonal_fragment.key,
-        "alternative_key": tonal_fragment.altkey
-    }
+    if alt_key:
+        alt_key = alt_key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
+        return f"{main_key}_{alt_key}"
+
+    return main_key
 
 def define_bpm(audio_path):
     y, sr = librosa.load(audio_path, sr=None)
@@ -41,9 +44,9 @@ if __name__ == '__main__':
         logger.info('---'*15)
         logger.info(file)
         tempo, beat_times = define_bpm(file)
-        keys = define_pitch(file)
+        final_keys = define_pitch(file)
         logger.info("Tempo is %s BPM" % tempo)
-        logger.info("Main defined key: {%s}. Alternative: {%s}" % (keys["main_key"], keys["alternative_key"]))
+        logger.info("Main defined keys: %s" % final_keys)
         logger.info('---'*15)
 
 

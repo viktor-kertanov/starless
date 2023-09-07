@@ -6,7 +6,7 @@ import os
 import random
 import shutil
 import numpy as np
-from sample_machine.define_key_classes import Tonal_Fragment
+from sample_machine_service.define_key_classes import Tonal_Fragment
 
 
 def stretch_speedup_audio(audio_path: str, factor: float):

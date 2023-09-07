@@ -2,7 +2,7 @@ from config import settings
 from google_services.google_sheets.read_sheets import read_google_sheet
 from random import sample
 import os
-from sample_machine.yt_dl import dl_yt_as_mp3
+from sample_machine_service.yt_dl import dl_yt_as_mp3
 from logs.log_config import logger
 
 def get_existing_files(directory: str = settings.audio_lib):

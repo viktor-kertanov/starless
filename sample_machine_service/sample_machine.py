@@ -1,18 +1,16 @@
 from random import randint
 from pydub import AudioSegment, silence
-from math import ceil
-from itertools import islice
 from datetime import datetime
 import os
 from os.path import isfile, join
 import shutil
 from datetime import datetime
 from google_services.speech_to_text.stt import speech_to_text
-from random import choice
-import uuid
 from config import settings
 from logs.log_config import logger
-from random import random, randint, choice
+from random import random, randint
+from sample_machine_service.get_key_and_bpm import define_bpm, define_pitch
+import numpy as np
 
 def get_files_from_folder(folder_path):
     files = [f for f in os.listdir(folder_path) if isfile(join(folder_path, f)) if f != '.DS_Store']
@@ -41,48 +39,6 @@ def msec_to_minutes_by_total(total_msec: int) -> str:
     return f"{int(whole_minutes)}m{int(leftover_sec)}s"
 
 
-def get_x_seconds_from_audio(
-        audio_path: str,
-        num_samples: int=5,
-        x_seconds: int=10000,
-        fade_in: int=3500,
-        fade_out: int=3500
-        ):
-    
-    audio = get_audio(audio_path)
-    
-    #length of audio in milliseconds
-    duration = len(audio)
-    filename = audio_path.split('/')[-1]
-    print(f"File provided: {filename}. Duration: {duration} ms.")
-
-    num_segments = ceil(duration / x_seconds)
-    
-    #checking if num_segments is less or equal to the number of samples
-    num_samples = (lambda x, y: x if x <= y else y)(num_samples, num_segments)
-    
-    final_audio = AudioSegment.empty()
-    
-    used_idx = []
-    for _ in range(num_samples):
-        random_segment_idx = randint(0, num_segments-1)
-        while random_segment_idx in used_idx:
-            random_segment_idx = randint(0, num_segments-1)
-       
-        used_idx.append(random_segment_idx)
-        print(f"Our random [{x_seconds}]-sec segment is of index # {random_segment_idx+1}-oo-{num_segments}.")
-        
-        slices = audio[::x_seconds]
-        slice = next(islice(slices, random_segment_idx, random_segment_idx+1), None)
-        
-        audio_sample = slice.fade_in(fade_in).fade_out(fade_out)
-        audio_sample.export(f"audio_sampler/output/{filename}_idx{random_segment_idx}_{msec_to_minutes_by_interval(x_seconds, random_segment_idx)}.mp3")
-        final_audio += audio_sample
-
-    final_audio.export(f'audio_sampler/output/{get_date_for_filename()}_{filename.split(".")[0]}_{num_samples}_samples.mp3')
-
-    return final_audio
-
 def minutes_seconds_from_millisec(ms):
     seconds, milliseconds = divmod(ms, 1000)
     minutes, seconds = divmod(seconds, 60)
@@ -93,7 +49,7 @@ def minutes_seconds_from_millisec(ms):
 def get_samples_from_audiofile(
         filename: str,
         num_samples: int=5,
-        sample_sec: [int|list[int]]=[2, 9],
+        sample_sec: [int|list[int]]=[2, 12],
         fade_in_sec: int=0.3,
         fade_out_sec: int=0.3,
         audio_lib: str=settings.audio_lib
@@ -123,11 +79,34 @@ def get_samples_from_audiofile(
     # exporting samples
     for start, end in segments:
         audio_sample = audio[start:end]
-        if end - start < 1500:
-            fade_in_sec = random() * 0.45 + 0.05
-            fade_out_sec = random() * 0.45 + 0.05
-        audio_sample = audio_sample.fade_in(int(fade_in_sec*1000)).fade_out(int(fade_out_sec*1000))
-        audio_sample.export(f"{sample_lib}{filename.replace('.mp3', '')}_s{int(start/1000)}-e{int(end/1000)}.mp3", format='mp3')
+        # if end - start < 1500:
+        #     fade_in_sec = random() * 0.45 + 0.05
+        #     fade_out_sec = random() * 0.45 + 0.05
+        # audio_sample = audio_sample.fade_in(int(fade_in_sec*1000)).fade_out(int(fade_out_sec*1000))
+        output_sample_path=f"{sample_lib}{filename.replace('.mp3', '')}_s{int(start/1000)}-e{int(end/1000)}.mp3"
+        audio_sample.export(output_sample_path, format='mp3')
+    
+        bpm, beat_times = define_bpm(output_sample_path)
+        bpm = int(bpm)
+        beat_times = np.round(beat_times * 1000,0)
+        beat_times_int = beat_times.astype(int)
+        music_key = define_pitch(output_sample_path)
+
+        # audio = get_audio(output_sample_path)
+        audio_sample = audio_sample[beat_times_int[1]:beat_times_int[-1]]
+        try:
+            fade_in = np.abs(beat_times_int[2] - beat_times_int[1])
+            fade_out = np.abs(beat_times_int[-2] - beat_times_int[-1])
+        except IndexError:
+            fade_in = 10
+            fade_out = 10
+
+        audio_sample = audio_sample.fade(from_gain=-10, start=0, duration=fade_in).fade(to_gain=-10, duration=fade_out, end=float('inf'))
+        # audio_sample = audio_sample.fade_in(10).fade_out(10)
+        key_bpm_output_sample_path = f"{sample_lib}{music_key}_{bpm}_{filename.replace('.mp3', '')}_s{int((start+beat_times_int[0])/1000)}-e{int((start + beat_times_int[-1])/1000)}.mp3"
+        os.remove(output_sample_path)
+
+        audio_sample.export(key_bpm_output_sample_path, format='mp3')
 
     return None
 
@@ -308,37 +287,16 @@ if __name__ == '__main__':
     sample_lib = settings.sample_lib
 
     files = get_files_from_folder(audio_lib)
-    for file in files:
+    for file in files[:10]:
         file_format = get_file_format(file)
-        num_samples = randint(4, 8)
+        num_samples = randint(3, 6)
         sample = get_samples_from_audiofile(
             file,
             num_samples=num_samples,
-            sample_sec=[1, 10],
+            sample_sec=[5, 10],
             fade_in_sec=0.4,
             fade_out_sec=0.4,
             audio_lib=audio_lib
         )
 
     print('Hello world!')
-
-    # min_silence_len_ms = 2000
-    # silence_thresh_db = -45
-    # seek_step_ms = 5
-    
-    # silent_excerpts = detect_silent_frames(
-    #         audio_path,
-    #         min_silence_len_ms=min_silence_len_ms,
-    #         silence_thresh_dB=silence_thresh_db,
-    #         seek_step_ms=seek_step_ms
-    #         )
-    
-    # nonsilent_excerpts = detect_non_silent_frames(
-    #         audio_path,
-    #         min_silence_len_ms=min_silence_len_ms,
-    #         silence_thresh_dB=silence_thresh_db,
-    #         seek_step_ms=seek_step_ms,
-    #         )
-
-    # export_by_timemap_to_audiofiles(audio_path, output_path, silent_excerpts, folder_codename="silence", leading_preserve_msec=0)
-    # export_by_timemap_to_audiofiles(audio_path, output_path, nonsilent_excerpts, folder_codename="nonsilent", leading_preserve_msec=1000)
