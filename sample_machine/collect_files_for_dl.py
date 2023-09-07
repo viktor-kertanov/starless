@@ -39,8 +39,8 @@ def get_videos_from_google_sheet(
 
 
 if __name__ == '__main__':
-    filter_by_cnl_id = 'UCn5-OHqf7b_sd7knIbZJ6xQ'
-    video_lib = get_videos_from_google_sheet(sample_size=130, filter_by_cnl_id=filter_by_cnl_id)
+
+    video_lib = get_videos_from_google_sheet(sample_size=200, filter_by_cnl_id=None)
     video_lib = [f"https://www.youtube.com/watch?v={el}" for el in video_lib]
     
     for v_idx, v_url in enumerate(video_lib, start=1):

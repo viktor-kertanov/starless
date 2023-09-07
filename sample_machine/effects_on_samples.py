@@ -6,34 +6,42 @@ import os
 import random
 import shutil
 import numpy as np
+from sample_machine.define_key_classes import Tonal_Fragment
 
 
-def stretch_audio():
-    sample_lib = settings.sample_lib
-    effects_sample_lib = settings.effects_sample_lib
-    file_list = os.listdir(sample_lib)
-    file_list = [f for f in file_list if os.path.isfile(os.path.join(sample_lib, f)) if not f.startswith('.')]
+def stretch_speedup_audio(audio_path: str, factor: float):
+    audio_path = f"{sample_lib}{audio_file}"
+    y, sr = librosa.load(audio_path)
+    y_slowed = librosa.effects.time_stretch(y, rate=factor)
+    
+    return y_slowed
 
-    audio_files = random.sample(file_list, k=3)
-    for audio_file in audio_files:
-        audio_path = f"{sample_lib}{audio_file}"
-        shutil.copy2(audio_path, f"{effects_sample_lib}{audio_file}")
-        factor_array = np.logspace(np.log10(0.1), np.log10(5), 5)
 
-        y, sr = librosa.load(audio_path)
+def define_pitch(audio_path):
+    y, sr = librosa.load(audio_path)
+    print('----'*30)
+    print(audio_path)
 
-        for factor in factor_array:
-            y_slowed = librosa.effects.time_stretch(y, rate=factor)
-            sf.write(f"{effects_sample_lib}f{round(factor,1)}_{audio_file}", y_slowed, sr)
-    return
+    y_harmonic, y_percussive = librosa.effects.hpss(y)
+    tonal_fragment = Tonal_Fragment(y_harmonic, sr)
+    
+    return {
+        "main_key": tonal_fragment.key,
+        "alternative_key": tonal_fragment.altkey
+    }
 
-def define_pitch():
+def define_bpm(audio_path):
+    y, sr = librosa.load(audio_path, sr=None)
+    y_harmonic, y_percussive = librosa.effects.hpss(y)
 
-    return
+    tempo, beat_frames = librosa.beat.beat_track(y=y_percussive, sr=sr)
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
-def define_bpm():
+    return {
+        "tempo": tempo,
+        "beat_times": beat_times
+    }
 
-    return
 
 def imply_fade_in_out():
 
@@ -72,19 +80,5 @@ if __name__ == '__main__':
         chromagram = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
 
         print(chromagram)
-        # Estimate pitch
-        # pitch, _ = librosa.piptrack(y=y, sr=sr)
-
-        # # Find the most dominant pitch
-        # pitch_values = [p.max() for p in pitch]
-        # dominant_pitch_index = pitch_values.index(max(pitch_values))
-        # dominant_pitch = pitch[dominant_pitch_index]
-
-        # # Convert the pitch to a note or frequency
-        # # You can use additional libraries or functions to map pitch values to notes or frequencies.
-        # # For example, you can use MIDI note numbers or a pitch class notation.
-
-        # # Print the estimated pitch
-        # print(f"Estimated Pitch: {dominant_pitch}")
 
     print('Hello world')

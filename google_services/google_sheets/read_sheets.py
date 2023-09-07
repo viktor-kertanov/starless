@@ -4,6 +4,7 @@ import pandas as pd
 from config import settings
 from itertools import zip_longest
 
+
 def read_google_sheet(spreadsheet_id, sheet_name) -> pd.DataFrame:
     creds = get_creds()
     service = build('sheets', 'v4', credentials=creds)

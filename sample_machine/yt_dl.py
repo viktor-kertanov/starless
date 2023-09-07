@@ -28,7 +28,7 @@ def dl_yt_as_mp3(
     filename = filename[:character_limiter]
     filename += ".mp3"
     output_path = output_path + filename
-    
+
     audio = AudioSegment.from_file(out_file, format="mp4")
 
     # Export the audio as an MP3 file
@@ -40,27 +40,18 @@ def dl_yt_as_mp3(
 
 
 if __name__ == '__main__':
-    yt_dl_folder = settings.effects_sample_lib
-    # video_url = "https://www.youtube.com/watch?v=TOypSnKFHrE"
+    yt_dl_folder = settings.test_lib
     video_urls = [
-        "https://www.youtube.com/watch?v=8sgycukafqQ",
-        "https://www.youtube.com/watch?v=bW62WKwVTM4",
-        "https://www.youtube.com/watch?v=WPbeEtjo70g",
-        "https://www.youtube.com/watch?v=1zioQ4SfIvo",
-        "https://www.youtube.com/watch?v=gdmHHoI9beM",
-        "https://www.youtube.com/watch?v=6Ux6SlOE9Qk",
-        "https://www.youtube.com/watch?v=1SaFRqFnRQQ",
-        "https://www.youtube.com/watch?v=RSdKmX2BH7o"
-        # "https://www.youtube.com/watch?v=rYEDA3JcQqw",
-        # "https://www.youtube.com/watch?v=WIF4_Sm-rgQ",
-        # "https://www.youtube.com/watch?v=YlUKcNNmywk",
-        # "https://www.youtube.com/watch?v=SBjQ9tuuTJQ",
-        # "https://www.youtube.com/watch?v=rn_YodiJO6k",
-        # "https://www.youtube.com/watch?v=ekzHIouo8Q4",
-        # "https://www.youtube.com/watch?v=sMmTkKz60W8",
-        # "https://www.youtube.com/watch?v=XFkzRNyygfk",
-        # "https://www.youtube.com/watch?v=hTWKbfoikeg",
-        # "https://www.youtube.com/watch?v=u9WgtlgGAgs"
+        "https://www.youtube.com/watch?v=rYEDA3JcQqw",
+        "https://www.youtube.com/watch?v=WIF4_Sm-rgQ",
+        "https://www.youtube.com/watch?v=YlUKcNNmywk",
+        "https://www.youtube.com/watch?v=SBjQ9tuuTJQ",
+        "https://www.youtube.com/watch?v=rn_YodiJO6k",
+        "https://www.youtube.com/watch?v=ekzHIouo8Q4",
+        "https://www.youtube.com/watch?v=sMmTkKz60W8",
+        "https://www.youtube.com/watch?v=XFkzRNyygfk",
+        "https://www.youtube.com/watch?v=hTWKbfoikeg",
+        "https://www.youtube.com/watch?v=u9WgtlgGAgs"
     ]
     for video_url in video_urls:
         dl_yt_as_mp3(video_url, yt_dl_folder, character_limiter=50)
