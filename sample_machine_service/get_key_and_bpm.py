@@ -12,6 +12,10 @@ def define_pitch(audio_path):
     tonal_fragment = Tonal_Fragment(y_harmonic, sr)
     main_key = tonal_fragment.key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
     alt_key = tonal_fragment.altkey
+
+    # logger.info(tonal_fragment.corr_table())
+    if max(list(tonal_fragment.key_dict.values())) < 0.85:
+        return "X"
     
     if alt_key:
         alt_key = alt_key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
