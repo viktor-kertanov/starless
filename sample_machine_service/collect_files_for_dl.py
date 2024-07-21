@@ -40,15 +40,12 @@ def get_videos_from_google_sheet(
 
 if __name__ == '__main__':
 
-    video_lib = get_videos_from_google_sheet(sample_size=200, filter_by_cnl_id=None)
+    video_lib = get_videos_from_google_sheet(sample_size=600, filter_by_cnl_id=None)
     video_lib = [f"https://www.youtube.com/watch?v={el}" for el in video_lib]
     
     for v_idx, v_url in enumerate(video_lib, start=1):
         dl_yt_as_mp3(v_url, settings.audio_lib, character_limiter=60)
         logger.info("%s. %s downloaded" % (v_idx, v_url))
-
-
-
 
     print('Hello world')
 

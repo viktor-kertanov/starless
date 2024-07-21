@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from youtube_api.classes import Video
 from logs.log_config import logger
+import json
 
 
 def prepare_chart_google(
@@ -25,16 +26,19 @@ def prepare_chart_google(
         row['v_go'] = f'=HYPERLINK("{video.video_url}"; "go")'
         row['channel_id'] = video.channel_id
         row['c_go'] = f'=HYPERLINK("{video.channel_url}"; "go")'
-        row['channel_title'] = video.relevant_channel_info.title
+        row['channel_title'] = video.relevant_channel_info.title if video.relevant_channel_info else "N/A"
         row['video_title'] = video.original_metadata
         row['views'] = video.views
         row['published'] = video.published_humanize
         row['pub_date'] = video.published.strftime('%Y-%m-%d %H:%M')
         row['length'] = str(video.length)
+        row['length_sec'] = str(video.length.seconds) #added
         row['category'] = video.video_category
         row['row_inserted'] = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
         if with_channel_info_block:
             cnl_block = video.relevant_channel_info
+            if not cnl_block:
+                continue
             row['subs'] = cnl_block.subscribers
             row['total_views'] = cnl_block.total_views
             row['video_count'] = cnl_block.video_count
@@ -159,7 +163,17 @@ def write_youtube_video_data_by_playlists_ids_to_google_sheets(playlists_ids: li
     return None
 
 if __name__ == '__main__':
+    data_path = "sample_machine_service/vk_history_data_july_2024/watched.json"
+    with open(data_path, 'r', encoding='utf-8') as file:
+        videos = json.load(file)
+    video_urls = videos[:1000]
+    video_urls = [v.split("v=")[-1] for v in video_urls]
+    api_req = VideoApiRequest(video_urls)
+    video_data = api_req.get_video_data(get_channel_data=True)
+    
+
+    prepare_chart_google(video_data, spreadsheet_id='1XZE_NvDu2mnBJVcu1DcOY_EpTa81ikQjqOuFIUnmDko', sheet_name='history', with_channel_info_block=True)
     # work_with_channels(channels_to_check=None)
-    work_with_playlists(playlists_ids=None)
+    # work_with_playlists(playlists_ids=None)
 
     print('Hello world')

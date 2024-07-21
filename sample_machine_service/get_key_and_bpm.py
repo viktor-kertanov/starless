@@ -9,19 +9,19 @@ def define_pitch(audio_path):
     y, sr = librosa.load(audio_path)
 
     y_harmonic, y_percussive = librosa.effects.hpss(y)
+    
     tonal_fragment = Tonal_Fragment(y_harmonic, sr)
     main_key = tonal_fragment.key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
     alt_key = tonal_fragment.altkey
 
-    # logger.info(tonal_fragment.corr_table())
-    if max(list(tonal_fragment.key_dict.values())) < 0.85:
-        return "X"
+    if max(list(tonal_fragment.key_dict.values())) < 0.5:
+        return "X", tonal_fragment.corr_table()
     
     if alt_key:
         alt_key = alt_key.replace(' ', '_').lower().replace('major', 'maj').replace('minor', 'min')
-        return f"{main_key}_{alt_key}"
+        return f"{main_key}_{alt_key}", tonal_fragment.corr_table()
 
-    return main_key
+    return main_key, tonal_fragment.corr_table()
 
 def define_bpm(audio_path):
     y, sr = librosa.load(audio_path, sr=None)

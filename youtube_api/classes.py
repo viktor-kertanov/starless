@@ -160,7 +160,7 @@ class VideoApiRequest(ApiRequest):
             cnl_dict = {cnl.id:cnl for cnl in channels_data}
             for video in video_data:
                 current_channel = video.channel_id
-                video.relevant_channel_info = cnl_dict[current_channel]
+                video.relevant_channel_info = cnl_dict.get(current_channel, None)
 
         return video_data
 

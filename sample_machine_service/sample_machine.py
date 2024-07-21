@@ -229,7 +229,7 @@ def get_samples_from_audiofile(
     
     path_to_audio = f"{audio_lib}{filename}"
     audio = get_audio(path_to_audio)
-    
+
     # length of audio in milliseconds
     duration_ms = len(audio)
     humanize_duration = minutes_seconds_from_millisec(duration_ms)
@@ -246,8 +246,10 @@ def get_samples_from_audiofile(
         end_sample_ms = int(start_sample_ms + sample_duration_ms)
         segments.append((start_sample_ms, end_sample_ms))
     
+    
     # exporting samples
     for start, end in segments:
+        fade_in_ms, fade_out_ms = None, None
         audio_sample = audio[start:end]
         output_sample_path=f"{sample_lib}{filename.replace('.mp3', '')}_ms{int(start/1000)}-{int(end/1000)}.mp3"
         audio_sample.export(output_sample_path, format='mp3')
@@ -257,31 +259,22 @@ def get_samples_from_audiofile(
             inner_bpm = int(bpm)
             beat_times = np.round(beat_times * 1000,0)
             beat_times = beat_times.astype(int)
+            if beat_times[-1] - beat_times[1] >= min_fade_in_out:
+                audio_sample = audio_sample[beat_times[1]: beat_times[-1]]
+                fade_in_ms = np.abs(beat_times[2] - beat_times[1])
+                fade_out_ms = np.abs(beat_times[-1] - beat_times[-2])
         else:
-            inner_bpm = "X"
+            inner_bpm = "X" 
         
-        music_key = define_pitch(output_sample_path)
-
-        try:
-            audio_sample = audio_sample[beat_times[1]: beat_times[-1]]
-            fade_in_ms = np.abs(beat_times[2] - beat_times[1])
-            fade_out_ms = np.abs(beat_times[-1] - beat_times[-2])
-        
-        except IndexError:
-            fade_in_ms = min_fade_in_out
-            fade_out_ms = min_fade_in_out
-        
-        if apply_fade_in_out:
+        if apply_fade_in_out and fade_in_ms and fade_out_ms:
             audio_sample = audio_sample.fade_in(fade_in_ms).fade_out(fade_out_ms)
         else:
             audio_sample = audio_sample.fade_in(min_fade_in_out).fade_out(min_fade_in_out)
         
-        duration_ms = len(audio_sample)
-        if duration_ms <= 0:
-
-            return
-        
+        duration_ms = len(audio_sample)        
         outer_bpm = int(round(60000 / duration_ms, 0))
+
+        music_key, corr_table = define_pitch(output_sample_path)
 
         key_bpm_output_sample_path = f"{sample_lib}{filename.replace('.mp3', '')[:20]}"
         key_bpm_output_sample_path += f"_s{int(start/1000)}-e{int(start/1000)}"
@@ -304,13 +297,16 @@ if __name__ == '__main__':
     for idx, file in enumerate(files, start=1):
         logger.info(f"{idx} oo {len(files)}. {file}")
         file_format = get_file_format(file)
-        num_samples = randint(5, 20)
-        sample = get_samples_from_audiofile(
-            file,
-            num_samples=num_samples,
-            sample_ms=[100, 1400],
-            apply_fade_in_out=False,
-            audio_lib=audio_lib
-        )
+        num_samples = randint(0, 1)
+        try:
+            sample = get_samples_from_audiofile(
+                file,
+                num_samples=num_samples,
+                sample_ms=[1080, 1100],
+                apply_fade_in_out=False,
+                audio_lib=audio_lib
+            )
+        except:
+            continue
 
     print('Hello world!')
