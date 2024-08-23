@@ -3,8 +3,8 @@ import cv2
 import json
 import concurrent.futures
 
-input_path = "/Volumes/KERTANOV_VIKTOR/itmo_screenology/yt_shorts"
-output_path = "/Volumes/KERTANOV_VIKTOR/itmo_screenology/frames"
+input_path = "/Volumes/LaCie/itmo_screenology/yt_shorts"
+output_path = "/Volumes/LaCie/itmo_screenology/frames"
 # log_file = "itmo_screens/data/frames_log_data.json"
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     #     print(f"{f_idx} out of {len(files_to_process)}. {f.split('/')[-1].split('_id_')[0]}")
     #     video_into_frames(f)
     
-    max_workers = 2  # Adjust this number as needed
+    max_workers = 8  # Adjust this number as needed
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(video_into_frames, video) for video in files_to_process]

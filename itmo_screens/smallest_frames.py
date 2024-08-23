@@ -3,8 +3,7 @@ import cv2
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm  # Optional: for a nice progress bar
 
-path = "/Volumes/KERTANOV_VIKTOR/itmo_screenology/frames"
-downscale_path = "/Volumes/KERTANOV_VIKTOR/itmo_screenology/frames_43x24"
+path = "/Volumes/transcend_ssd/itmo_screenology/frames"
 
 folders = os.listdir(path)
 proper_folders = [os.path.join(path, f) for f in folders if "w360_h640" in f]
@@ -41,7 +40,7 @@ def resize_images_in_directory(input_dir, output_dir, width=None, height=None, i
     print(f"{input_dir.split('__')[-1]} done")
 
 def process_directory(f, new_width):
-    output_dir = f.replace("frames", "frames_43x24")
+    output_dir = f.replace("frames", "frames_184x104")
     if os.path.exists(output_dir):
         files = [f for f in os.listdir(output_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
         if len(files) == int(output_dir.split('__frms_')[-1].split('_')[0]):
@@ -66,8 +65,8 @@ def main(proper_folders, new_width, max_workers):
                 print(f"Error processing {f}: {e}")
 
 if __name__ == '__main__':
-    new_width = 24
-    max_workers = 8  # Set the number of workers
+    new_width = 104
+    max_workers = 10  # Set the number of workers
     main(proper_folders, new_width, max_workers)
 
     print("Hello world")

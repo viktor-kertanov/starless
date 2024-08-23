@@ -25,6 +25,8 @@ google_auth/credentials/token.json
 *.mp3
 *.mp4
 *.mamd
-*.aif 
+*.aif
+*.jpg
+*.jpeg
 
 **/credentials/*
